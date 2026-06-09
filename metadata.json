@@ -1,0 +1,6 @@
+{
+  "name": "Tri-Ad Intelligence Assessment",
+  "description": "A high-fidelity psychometric platform measuring Imagination, Intuition, and Judgment with dynamic boundary normalization and interactive cognitive profile visualization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
