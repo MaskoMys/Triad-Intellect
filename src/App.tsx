@@ -163,7 +163,12 @@ export default function App() {
               exit={{ opacity: 0, y: -10 }}
               className="py-4"
             >
-              <LandingPage onStart={handleStartAssessment} />
+              <LandingPage 
+                onStart={handleStartAssessment} 
+                history={history}
+                onSelectHistorical={handleSelectHistorical}
+                onDeleteHistory={handleDeleteHistoryItem}
+              />
             </motion.div>
           )}
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { 
   Download, Trash2, Calendar, User, Eye, Sparkles, BookOpen, 
   Settings, Award, RefreshCw, Trophy, ArrowUpRight, HelpCircle,
-  Share2
+  Share2, X, FileText, Copy, Check
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { motion } from "motion/react";
@@ -27,6 +27,8 @@ export default function ResultsDashboard({
   const [chartType, setChartType] = useState<"micro" | "macro">("micro");
   const [selectedBarTrait, setSelectedBarTrait] = useState<TraitKey>("creativity");
   const [shareCopied, setShareCopied] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [pdfSharingState, setPdfSharingState] = useState<"idle" | "generating" | "sharing" | "fallback" | "done">("idle");
 
   const { userName, timestamp, profileCode, normalizedScores, macroScores, archetype } = result;
 
@@ -159,36 +161,7 @@ export default function ResultsDashboard({
     URL.revokeObjectURL(url);
   };
 
-  const handleShare = async () => {
-    const textToShare = `My TriAd Cognitive Archetype is ${profileCode} / ${archetype.name} ("${archetype.tagline}")! Calibrate yours at:`;
-    const shareUrl = window.location.origin + window.location.pathname;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "TriAd Cognitive Assessment Calibration",
-          text: `${textToShare} ${shareUrl}`,
-          url: shareUrl,
-        });
-      } catch (err) {
-        copyToClipboard(textToShare, shareUrl);
-      }
-    } else {
-      copyToClipboard(textToShare, shareUrl);
-    }
-  };
-
-  const copyToClipboard = (text: string, url: string) => {
-    const fullText = `${text} ${url}`;
-    navigator.clipboard.writeText(fullText).then(() => {
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2000);
-    }).catch(err => {
-      console.error("Could not copy link: ", err);
-    });
-  };
-
-  const handleDownloadPDF = () => {
+  const generatePDFDoc = () => {
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -498,8 +471,92 @@ export default function ResultsDashboard({
     doc.text("TriAd Cognitive Map Protocol • Confidential Personal Portfolio", 15, 287);
     doc.text("Page 2 of 2", 185, 287);
 
-    // Save PDF
+    return doc;
+  };
+
+  const handleDownloadPDF = () => {
+    const doc = generatePDFDoc();
     doc.save(`TriAd_Cognitive_Map_${userName}_${profileCode}.pdf`);
+  };
+
+  const handleShare = () => {
+    setIsShareOpen(true);
+  };
+
+  const handleShareText = async () => {
+    const shareUrl = window.location.origin + window.location.pathname;
+    const textToShare = `My TriAd Cognitive Archetype is ${profileCode} / ${archetype.name} ("${archetype.tagline}")! Calibrate yours at:\n`;
+    const bodyText = `🔮 TRIAD COGNITIVE PORTFOLIO CALIBRATION 🔮
+Subject: ${userName}
+Identity Blueprint: ${profileCode} / ${archetype.name.toUpperCase()}
+"${archetype.tagline}"
+
+Core Mental Vectors:
+⚡ Imagination Score: ${Math.round(macroScores.imagination)}%
+🌿 Intuition Score: ${Math.round(macroScores.intuition)}%
+⚖️ Judgment Score: ${Math.round(macroScores.judgment)}%
+
+Career Trajectory Guidance:
+• ${archetype.careerPaths[0]}
+
+Formulate your blueprint coordinate structure at:`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `TriAd Cognitive Archetype: ${profileCode}`,
+          text: `${bodyText}\n${shareUrl}`,
+          url: shareUrl,
+        });
+      } catch (err) {
+        // clipboard copy as backup
+        copyTextPayload(`${bodyText}\n${shareUrl}`);
+      }
+    } else {
+      copyTextPayload(`${bodyText}\n${shareUrl}`);
+    }
+  };
+
+  const handleSharePDF = async () => {
+    try {
+      setPdfSharingState("generating");
+      const doc = generatePDFDoc();
+      const pdfBlob = doc.output("blob");
+      const fileName = `TriAd_Cognitive_Map_${userName}_${profileCode}.pdf`;
+      const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+        setPdfSharingState("sharing");
+        await navigator.share({
+          files: [file],
+          title: `TriAd Report - ${userName} (${profileCode})`,
+          text: `My verified TriAd Cognitive map results report (PDF format).`
+        });
+        setPdfSharingState("done");
+        setTimeout(() => setPdfSharingState("idle"), 3000);
+      } else {
+        // Browser does not support sharing files (common on many desktop browsers)
+        // gracefully trigger fallback download and inform
+        setPdfSharingState("fallback");
+        doc.save(fileName);
+        setTimeout(() => setPdfSharingState("idle"), 5000);
+      }
+    } catch (err) {
+      console.error("PDF Native WebShare API failed:", err);
+      setPdfSharingState("fallback");
+      const doc = generatePDFDoc();
+      doc.save(`TriAd_Cognitive_Map_${userName}_${profileCode}.pdf`);
+      setTimeout(() => setPdfSharingState("idle"), 4000);
+    }
+  };
+
+  const copyTextPayload = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    }).catch(err => {
+      console.error("Could not copy:", err);
+    });
   };
 
   return (
@@ -1058,6 +1115,147 @@ export default function ResultsDashboard({
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* Premium Web Share Option Modal Overlay */}
+      {isShareOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop blur */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsShareOpen(false)}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"
+          />
+
+          {/* Modal Container */}
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 15 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 15 }}
+            className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full border border-slate-200/80 shadow-2xl relative z-10 overflow-hidden"
+          >
+            {/* Background pattern decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full blur-2xl -mr-10 -mt-10" />
+
+            {/* Header */}
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-lg">
+                  Share Portal
+                </span>
+                <h3 className="font-display text-xl font-bold text-slate-900 mt-2">
+                  Cognitive Share Blueprint
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Transmit your authentic calibrated {profileCode} core coordinate map.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsShareOpen(false)}
+                className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-850 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Two Choices layout: Elegant Text vs Full PDF */}
+            <div className="space-y-4">
+              
+              {/* Option 1: Beautiful Text Summary */}
+              <button
+                onClick={handleShareText}
+                className="w-full text-left p-4 bg-slate-50 hover:bg-slate-100/80 active:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-2xl transition-all flex items-start gap-4 cursor-pointer group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-605 shrink-0 group-hover:scale-105 transition-transform">
+                  <FileText className="w-5 h-5 text-orange-650" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-bold text-slate-850 group-hover:text-indigo-900 transition-colors">
+                    Option A: Share Identity Summary (Text)
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                    Copies or shares clean, stylized markdown with scores, active strengths, code, and direct link. Optimized for social updates, Slack, and text channels.
+                  </p>
+                  
+                  {/* Miniature live preview */}
+                  <div className="mt-2.5 p-2 bg-white/80 border border-slate-100 rounded-lg text-[9px] font-mono text-slate-400 max-h-16 overflow-hidden select-none">
+                    🔮 TRIAD COGNITIVE CALIBRATION...<br/>
+                    Subject: {userName}<br/>
+                    Identity: {profileCode} / {archetype.name}
+                  </div>
+                </div>
+              </button>
+
+              {/* Option 2: Share Premium PDF Document */}
+              <button
+                onClick={handleSharePDF}
+                disabled={pdfSharingState === "generating" || pdfSharingState === "sharing"}
+                className="w-full text-left p-4 bg-slate-50 hover:bg-indigo-50/10 active:bg-slate-100 border border-slate-200 hover:border-slate-350 rounded-2xl transition-all flex items-start gap-4 cursor-pointer group disabled:opacity-85"
+              >
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-150 flex items-center justify-center text-indigo-600 shrink-0 group-hover:scale-105 transition-transform">
+                  <Award className="w-5 h-5 text-indigo-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-bold text-slate-850 group-hover:text-indigo-900 transition-colors">
+                    Option B: Share Portrait Document (PDF)
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                    Bundles a mathematical double-page PDF configuration report, sharing it natively on mobile or desktop. Falls back to dynamic download if native file-sharing is unsupported.
+                  </p>
+
+                  {/* Dynamic Sharing Status Badge */}
+                  <div className="mt-3 flex items-center gap-2">
+                    {pdfSharingState === "idle" && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-mono text-slate-500 bg-white border border-slate-150 px-2 py-0.5 rounded-md">
+                        ● READY_TO_COMPILE
+                      </span>
+                    )}
+                    {pdfSharingState === "generating" && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-mono text-indigo-650 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md animate-pulse">
+                        ⌛ Compiling professional PDF metrics...
+                      </span>
+                    )}
+                    {pdfSharingState === "sharing" && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-250 px-2 py-0.5 rounded-md animate-pulse">
+                        ⚡ Invoking native communication channel selector...
+                      </span>
+                    )}
+                    {pdfSharingState === "fallback" && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-mono text-amber-700 bg-amber-50 border border-amber-205 px-2 py-0.5 rounded-md animate-bounce">
+                        ⚠️ File share unsupported. Report downloaded to device!
+                      </span>
+                    )}
+                    {pdfSharingState === "done" && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-250 px-2 py-0.5 rounded-md">
+                        ✓ Transmission finished successfully!
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+
+            </div>
+
+            {/* Quick footer notification */}
+            {shareCopied && (
+              <div className="mt-4 p-2 bg-emerald-50 text-emerald-800 text-center font-semibold text-xs border border-emerald-200 rounded-xl">
+                Text summary successfully copied to clipboard!
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-slate-105 flex justify-end gap-2.5">
+              <button
+                onClick={() => setIsShareOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-650 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all cursor-pointer"
+              >
+                Close Portal
+              </button>
+            </div>
+
+          </motion.div>
         </div>
       )}
     </div>
