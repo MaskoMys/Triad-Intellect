@@ -61,6 +61,7 @@ export interface AssessmentResult {
   id: string;
   timestamp: string;
   userName: string;
+  userEmail?: string;
   rawScores: TraitWeights;
   normalizedScores: TraitScores;
   macroScores: MacroScores;

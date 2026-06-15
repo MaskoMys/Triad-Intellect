@@ -11,17 +11,27 @@ interface LandingPageProps {
   history?: AssessmentResult[];
   onSelectHistorical?: (result: AssessmentResult) => void;
   onDeleteHistory?: (id: string) => void;
+  activeTab?: "assess" | "progress";
+  setActiveTab?: (tab: "assess" | "progress") => void;
+  onLoadDemo?: () => void;
 }
 
 export default function LandingPage({ 
   onStart, 
   history = [], 
   onSelectHistorical, 
-  onDeleteHistory 
+  onDeleteHistory,
+  activeTab: controlledActiveTab,
+  setActiveTab: controlledSetActiveTab,
+  onLoadDemo
 }: LandingPageProps) {
-  const [activeTab, setActiveTab] = useState<"assess" | "progress">(
+  const [localActiveTab, setLocalActiveTab] = useState<"assess" | "progress">(
     history.length > 0 ? "progress" : "assess"
   );
+
+  const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : localActiveTab;
+  const setActiveTab = controlledSetActiveTab !== undefined ? controlledSetActiveTab : setLocalActiveTab;
+
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -86,10 +96,37 @@ export default function LandingPage({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto font-light leading-relaxed mb-8"
+          className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto font-light leading-relaxed mb-6"
         >
           Calibrate your dynamic coordinates across three macro mental vectors and eight specialized micro-traits using programmatically verified min-max limits.
         </motion.p>
+
+        {/* Instant Dashboard Demo Banner */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mb-8 max-w-2xl mx-auto bg-gradient-to-r from-indigo-50/70 via-amber-50/20 to-indigo-50/70 border border-indigo-150/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-left"
+        >
+          <div className="space-y-1">
+            <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-1.5 uppercase tracking-wide">
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+              🌟 Live Demonstration Sector Active
+            </h4>
+            <p className="text-[11px] text-slate-650 leading-relaxed">
+              Want to skip the 30-question diagnostic quiz and explore the complete visual dashboard, dynamic charts, carrier profiles, and PDF dispatch systems instantly? Load a preloaded demo workspace template.
+            </p>
+          </div>
+          <button
+            onClick={onLoadDemo}
+            className="px-4.5 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs hover:shadow-md whitespace-nowrap shrink-0"
+          >
+            Explore Demo Dashboard 🔮
+          </button>
+        </motion.div>
 
         {/* Dashboard / Action Selector Premium Tab bar */}
         <div className="inline-flex p-1 bg-slate-100 rounded-2xl border border-slate-200/60 shadow-inner">
@@ -302,13 +339,21 @@ export default function LandingPage({
               <p className="text-xs text-slate-500 leading-relaxed mb-6">
                 You do not have any assessment history saved. Once you complete your first psychometric run, your dynamic cognitive scores, archetypes, and metrics will be persisted here across sessions.
               </p>
-              <button
-                onClick={() => setActiveTab("assess")}
-                className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-transform hover:-translate-y-0.5 cursor-pointer"
-              >
-                Launch Assessment First
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={() => setActiveTab("assess")}
+                  className="inline-flex items-center justify-center gap-1.5 px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-transform hover:-translate-y-0.5 cursor-pointer"
+                >
+                  Launch Assessment First
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={onLoadDemo}
+                  className="inline-flex items-center justify-center gap-1.5 px-4.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/50 rounded-xl text-xs font-semibold shadow-xs transition-transform hover:-translate-y-0.5 cursor-pointer"
+                >
+                  🔮 Explore Sample Dashboard
+                </button>
+              </div>
             </div>
           ) : (
             /* Dashboard Content */
