@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Sparkles, Compass, Brain, Layers, BookOpen, Clock, Heart, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Layers, Clock, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import LandingPage from "./components/LandingPage";
 import AssessmentWizard from "./components/AssessmentWizard";
@@ -14,8 +14,11 @@ import {
   generateProfileCode, 
   getArchetype 
 } from "./utils";
-
-const LOCAL_STORAGE_KEY = "tri_ad_attempts_v2";
+import { 
+  getHistoryFromStorage, 
+  saveHistoryToStorage, 
+  clearHistoryFromStorage 
+} from "./lib/localStorage";
 
 export default function App() {
   const [step, setStep] = useState<"landing" | "quiz" | "results">("landing");
@@ -44,14 +47,8 @@ export default function App() {
 
   // Hydrate history from localStorage on startup
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) {
-        setHistory(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error("Failed to restore previous psychometric records:", e);
-    }
+    const historicalRecords = getHistoryFromStorage();
+    setHistory(historicalRecords);
 
     // Set real-time counter
     const updateTime = () => {
@@ -104,21 +101,13 @@ export default function App() {
     setActiveResult(newResult);
     setStep("results");
 
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedHistory));
-    } catch (e) {
-      console.error("Failed to commit assessment node to database:", e);
-    }
+    saveHistoryToStorage(updatedHistory);
   };
 
   const handleDeleteHistoryItem = (id: string) => {
     const updated = history.filter((item) => item.id !== id);
     setHistory(updated);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.error("Failed to update local records:", e);
-    }
+    saveHistoryToStorage(updated);
   };
 
   const handleSelectHistorical = (resultItem: AssessmentResult) => {
@@ -160,11 +149,15 @@ export default function App() {
     setActiveResult(updatedResult);
     const updatedHistory = history.map((item) => item.id === updatedResult.id ? updatedResult : item);
     setHistory(updatedHistory);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedHistory));
-    } catch (e) {
-      console.error("Failed to commit updated psychometric node:", e);
-    }
+    saveHistoryToStorage(updatedHistory);
+  };
+
+  const handleClearAllHistory = () => {
+    clearHistoryFromStorage();
+    setHistory([]);
+    setActiveResult(null);
+    setLandingTab("assess");
+    setStep("landing");
   };
 
   const submitDirectPremiumOrder = async (e: React.FormEvent) => {
@@ -210,7 +203,8 @@ export default function App() {
           profileCode: matchedResult.profileCode,
           macroScores: matchedResult.macroScores,
           archetype: matchedResult.archetype,
-          timestamp: matchedResult.timestamp
+          timestamp: matchedResult.timestamp,
+          feedback: matchedResult.feedback
         })
       });
 
@@ -252,18 +246,18 @@ export default function App() {
             </div>
             <div className="text-left">
               <span className="font-display font-bold text-sm tracking-tight text-gray-950 block">TRI-AD</span>
-              <span className="text-[10px] font-mono text-slate-400 uppercase -mt-1 block">Cognitive Intelligence</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase -mt-1 block">Cognitive Archetype Mapper</span>
             </div>
           </button>
 
           {/* Main Navigation links */}
-          <nav className="hidden md:flex items-center gap-1 bg-slate-150/50 border border-slate-200/50 p-1 rounded-xl">
+          <nav className="hidden md:flex items-center gap-1 bg-slate-200/50 border border-slate-200/50 p-1 rounded-xl">
             <button
               onClick={() => {
                 setStep("landing");
                 setLandingTab("assess");
               }}
-              className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all cursor-pointer focus:outline-none ${
+              className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                 step === "landing" && landingTab === "assess"
                   ? "bg-white text-indigo-700 shadow-xs border border-slate-200/20"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -276,7 +270,7 @@ export default function App() {
                 setStep("landing");
                 setLandingTab("progress");
               }}
-              className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all cursor-pointer focus:outline-none ${
+              className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                 step === "landing" && landingTab === "progress"
                   ? "bg-white text-indigo-700 shadow-xs border border-slate-200/20"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -287,7 +281,7 @@ export default function App() {
             {activeResult && (
               <button
                 onClick={() => setStep("results")}
-                className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all cursor-pointer focus:outline-none ${
+                className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                   step === "results"
                     ? "bg-white text-indigo-700 shadow-xs border border-slate-200/20"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -298,7 +292,7 @@ export default function App() {
             )}
             <button
               onClick={handleLoadDemo}
-              className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer text-amber-800 bg-amber-50 hover:bg-amber-100/80 border border-amber-200/40 focus:outline-none flex items-center gap-1 font-display"
+              className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer text-amber-800 bg-amber-50 hover:bg-amber-100/80 border border-amber-200/40 focus:outline-none focus:ring-2 focus:ring-amber-500 flex items-center gap-1 font-display"
             >
               🔮 Explore Demo
             </button>
@@ -334,6 +328,7 @@ export default function App() {
                 history={history}
                 onSelectHistorical={handleSelectHistorical}
                 onDeleteHistory={handleDeleteHistoryItem}
+                onClearAllHistory={handleClearAllHistory}
                 activeTab={landingTab}
                 setActiveTab={setLandingTab}
                 onLoadDemo={handleLoadDemo}
@@ -372,6 +367,7 @@ export default function App() {
                 onDeleteHistory={handleDeleteHistoryItem}
                 onSelectHistorical={handleSelectHistorical}
                 onUpdateResult={handleUpdateResult}
+                onClearAllHistory={handleClearAllHistory}
               />
             </motion.div>
           )}
@@ -401,13 +397,13 @@ export default function App() {
             <div className="flex justify-between items-start mb-5">
               <div>
                 <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-yellow-600 bg-yellow-50 border border-yellow-100 px-2.5 py-1 rounded-lg">
-                  ✦ Premium Calibration Upgrade
+                  ✦ Premium Exploratory Upgrade
                 </span>
                 <h3 className="font-display text-xl font-bold text-slate-900 mt-2">
-                  Verify Premium Requisition
+                  Premium Report Requisition
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Securely request a comprehensive 40-page psychometric cognitive dossier.
+                  Securely request an expanded 40-page blueprint document.
                 </p>
               </div>
               <button
@@ -453,14 +449,14 @@ export default function App() {
                 </div>
                 <h4 className="text-md font-bold text-slate-900">Premium Order Processed!</h4>
                 <p className="text-xs text-slate-500 mt-1.5 leading-relaxed max-w-xs mx-auto">
-                  Your request has been filed directly with supervisor <span className="font-semibold text-slate-700">nidhal.mgh@gmail.com</span>. The comprehensive dossier compilation package is underway.
+                  Your request has been filed directly with <span className="font-semibold text-slate-700">the administrator</span>. The comprehensive dossier compilation package is underway.
                 </p>
                 <button
                   onClick={() => {
                     setInitialPremiumOrder(null);
                     window.history.pushState({}, document.title, window.location.pathname);
                   }}
-                  className="mt-6 w-full py-2.5 text-xs font-semibold text-white bg-slate-905 hover:bg-slate-800 rounded-xl transition-all cursor-pointer"
+                  className="mt-6 w-full py-2.5 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
                 >
                   Return to Dashboard
                 </button>
@@ -481,7 +477,7 @@ export default function App() {
                       setOrderEmail(e.target.value);
                       if (orderError) setOrderError("");
                     }}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-250 focus:border-indigo-550 focus:ring-2 focus:ring-indigo-100 outline-none bg-slate-50 focus:bg-white transition-all text-slate-900 font-medium"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none bg-slate-50 focus:bg-white transition-all text-slate-900 font-medium"
                   />
                   {orderError && (
                     <p className="text-[11px] text-red-600 mt-1 font-medium">{orderError}</p>
@@ -489,7 +485,7 @@ export default function App() {
                 </div>
 
                 <p className="text-[10px] text-slate-400 bg-slate-50 border border-slate-100 rounded-xl p-3 leading-relaxed">
-                  ✦ <strong>Requisition Details:</strong> Deep psychometric audits require custom offline computing vectors. Submission sends an electronic notification to <strong>nidhal.mgh@gmail.com</strong> who manually validates and dispatches your expanded 40-page blueprint PDF.
+                  ✦ <strong>Requisition Details:</strong> Complex blueprint reporting requires offline assembly. Submission sends an electronic notification to the <strong>system administrator</strong> who manually validates and dispatches your expanded 40-page blueprint PDF.
                 </p>
 
                 <div className="flex gap-2.5 pt-2">
@@ -499,14 +495,14 @@ export default function App() {
                       setInitialPremiumOrder(null);
                       window.history.pushState({}, document.title, window.location.pathname);
                     }}
-                    className="flex-1 py-3 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-250 rounded-xl transition-all cursor-pointer"
+                    className="flex-1 py-3 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={orderStatus === "submitting"}
-                    className="flex-1 py-3 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                   >
                     {orderStatus === "submitting" ? (
                       <>
@@ -534,7 +530,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-1">
             <span>Powered by</span>
-            <span className="font-semibold text-slate-700 font-display">DeepMind Calibration Units</span>
+            <span className="font-semibold text-slate-700 font-display">Tri-Ad Cognitive Engine</span>
           </div>
         </div>
       </footer>

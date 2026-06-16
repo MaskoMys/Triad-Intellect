@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, HelpCircle, ArrowRight, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Question } from "../types";
 import { questions } from "../questions";
 
 interface AssessmentWizardProps {
@@ -21,6 +20,14 @@ export default function AssessmentWizard({ userName, onComplete, onCancel }: Ass
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentIndex]);
+
+  if (!currentQuestion) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 text-center text-slate-500 font-mono">
+        Calibration error: Question index {currentIndex} not found.
+      </div>
+    );
+  }
 
   const handleSelectOption = (optionIndex: number) => {
     setResponses((prev) => ({
@@ -78,7 +85,7 @@ export default function AssessmentWizard({ userName, onComplete, onCancel }: Ass
       {/* Top Protocol Status Bar */}
       <div className="bg-white border border-slate-100 rounded-2xl p-4 md:p-6 mb-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="text-xs text-slate-400 font-mono tracking-wider uppercase">Calibrating Node</div>
+          <div className="text-xs text-slate-400 font-mono tracking-wider uppercase">Reflecting Node</div>
           <div className="text-sm font-semibold text-slate-800">Assessor: <span className="text-indigo-600">{userName}</span></div>
         </div>
         <div className="flex-1 md:max-w-xs">
@@ -110,7 +117,7 @@ export default function AssessmentWizard({ userName, onComplete, onCancel }: Ass
         <div>
           <div className="flex justify-between items-center mb-6">
             <span className="text-xs font-semibold px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-md text-slate-500 uppercase font-mono tracking-wider">
-              Diagnostic Step {currentIndex + 1} of {questions.length}
+              Mapping Step {currentIndex + 1} of {questions.length}
             </span>
             <span className="text-xs text-slate-400 font-mono">
               ID: Q30-{currentQuestion.id.toString().padStart(2, "0")}
@@ -284,7 +291,7 @@ export default function AssessmentWizard({ userName, onComplete, onCancel }: Ass
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 bg-emerald-50 border border-emerald-200 rounded" />
-            <span>Calibrated</span>
+            <span>Mapped</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 bg-slate-50 border border-slate-200 rounded" />

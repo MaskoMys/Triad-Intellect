@@ -1,4 +1,5 @@
 import { Question, TraitWeights, TraitBounds, TraitScores, MacroScores, ArchetypeDetails, TraitKey } from "./types";
+import { questions } from "./questions";
 
 export const traits: TraitKey[] = [
   'creativity',
@@ -32,6 +33,45 @@ export const traitDescriptions: Record<TraitKey, string> = {
   emotional: "Dedication to human impact, harmony, interpersonal context, and emotional resonance.",
   predictive: "Dedication to temporal patterns, historical trends, and systemic forecasting."
 };
+
+// Calculate expected values under uniform random answering for each trait
+export function computeTraitExpectations(questionsList: Question[]): TraitWeights {
+  const expectations: TraitWeights = {
+    creativity: 0,
+    innovation: 0,
+    physical: 0,
+    metaphysical: 0,
+    discernment: 0,
+    logical: 0,
+    emotional: 0,
+    predictive: 0
+  };
+
+  questionsList.forEach(q => {
+    const qSum: Record<TraitKey, number> = {
+      creativity: 0,
+      innovation: 0,
+      physical: 0,
+      metaphysical: 0,
+      discernment: 0,
+      logical: 0,
+      emotional: 0,
+      predictive: 0
+    };
+    q.options.forEach(opt => {
+      traits.forEach(trait => {
+        qSum[trait] += opt.weights[trait] ?? 0;
+      });
+    });
+    traits.forEach(trait => {
+      expectations[trait] += qSum[trait] / q.options.length;
+    });
+  });
+
+  return expectations;
+}
+
+export const traitExpectations = computeTraitExpectations(questions);
 
 // Programmatically calculate lowest/highest possible raw weightings for each trait on app boot
 export function computeTraitBounds(questionsList: Question[]): TraitBounds {
@@ -91,7 +131,7 @@ export function computeRawUserScores(
   return rawScores;
 }
 
-// Normalize raw user scores using dynamic bounds
+// Normalize raw user scores using dynamic bounds and centered expectations
 export function normalizeScores(
   rawScores: TraitWeights,
   bounds: TraitBounds
@@ -101,12 +141,28 @@ export function normalizeScores(
   traits.forEach(trait => {
     const { min: rawMin, max: rawMax } = bounds[trait];
     const rawUser = rawScores[trait];
+    const rawExp = traitExpectations[trait];
 
     if (rawMax === rawMin) {
       normalized[trait] = 50; // Safeguard division-by-zero
+    } else if (rawUser === rawExp) {
+      normalized[trait] = 50;
+    } else if (rawUser < rawExp) {
+      // Scale from rawMin to rawExp -> 0 to 50
+      if (rawExp === rawMin) {
+        normalized[trait] = 50;
+      } else {
+        const pct = ((rawUser - rawMin) / (rawExp - rawMin)) * 50;
+        normalized[trait] = Math.max(0, Math.min(50, pct));
+      }
     } else {
-      const pct = ((rawUser - rawMin) / (rawMax - rawMin)) * 100;
-      normalized[trait] = Math.max(0, Math.min(100, pct));
+      // Scale from rawExp to rawMax -> 50 to 100
+      if (rawMax === rawExp) {
+        normalized[trait] = 50;
+      } else {
+        const pct = 50 + ((rawUser - rawExp) / (rawMax - rawExp)) * 50;
+        normalized[trait] = Math.max(50, Math.min(100, pct));
+      }
     }
   });
 

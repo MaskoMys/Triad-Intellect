@@ -67,4 +67,13 @@ export interface AssessmentResult {
   macroScores: MacroScores;
   profileCode: string;
   archetype: ArchetypeDetails;
+  feedback?: BetaFeedback;
+}
+
+export interface BetaFeedback {
+  accuracyRating?: number; // 1-5
+  mostTrue?: string;
+  mostWrong?: string;
+  wouldShare?: boolean;
+  wouldPayDeeper?: boolean;
 }

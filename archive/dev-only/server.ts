@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import dns from "dns";
 
@@ -37,7 +36,7 @@ async function startServer() {
       });
     }
 
-    const receiverEmail = process.env.RECEIVER_EMAIL || "nidhal.mgh@gmail.com";
+    const receiverEmail = process.env.RECEIVER_EMAIL || "supervisor@example.com";
     
     // Formatting email templates
     const emailSubject = `🔮 NEW PREMIUM REPORT ORDER - ${name} [${profileCode}]`;
@@ -224,8 +223,9 @@ This order was initiated from the Tri-Ad advanced cognitive map protocol results
     try {
       console.log("No custom secrets found. Using keyless FormSubmit relay fallback for live demonstration/testing...");
       
-      let parsedReferer = "https://ais-dev-gyfp7y7ldkbdjp4wgkcfu5-580006627230.europe-west2.run.app";
-      let parsedOrigin = "https://ais-dev-gyfp7y7ldkbdjp4wgkcfu5-580006627230.europe-west2.run.app";
+      let defaultHost = process.env.APP_URL || (req.headers.host ? `https://${req.headers.host}` : "https://triad-intellect.com");
+      let parsedReferer = defaultHost;
+      let parsedOrigin = defaultHost;
       if (req.headers.referer) {
         parsedReferer = req.headers.referer;
         try {
@@ -294,7 +294,7 @@ This order was initiated from the Tri-Ad advanced cognitive map protocol results
     // Serve static frontend resources in production
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
+    app.get("*", (_req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }

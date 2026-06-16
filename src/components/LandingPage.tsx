@@ -1,16 +1,20 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { 
-  Sparkles, Brain, Compass, Shield, ArrowRight, BookOpen, Layers,
-  TrendingUp, Calendar, Trash2, Eye, User, Info, Award
+  ArrowRight, Layers, TrendingUp, Calendar, Trash2, Eye, Info, Award
 } from "lucide-react";
 import { motion } from "motion/react";
 import { AssessmentResult } from "../types";
+import HeroSection from "./HeroSection";
+import HowItWorksSection from "./HowItWorksSection";
+import AudienceSection from "./AudienceSection";
+import CTASection from "./CTASection";
 
 interface LandingPageProps {
   onStart: (name: string) => void;
   history?: AssessmentResult[];
   onSelectHistorical?: (result: AssessmentResult) => void;
   onDeleteHistory?: (id: string) => void;
+  onClearAllHistory?: () => void;
   activeTab?: "assess" | "progress";
   setActiveTab?: (tab: "assess" | "progress") => void;
   onLoadDemo?: () => void;
@@ -21,6 +25,7 @@ export default function LandingPage({
   history = [], 
   onSelectHistorical, 
   onDeleteHistory,
+  onClearAllHistory,
   activeTab: controlledActiveTab,
   setActiveTab: controlledSetActiveTab,
   onLoadDemo
@@ -32,23 +37,8 @@ export default function LandingPage({
   const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : localActiveTab;
   const setActiveTab = controlledSetActiveTab !== undefined ? controlledSetActiveTab : setLocalActiveTab;
 
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) {
-      setError("Please introduce yourself to initialize the assessment calibration.");
-      return;
-    }
-    if (trimmed.length < 2) {
-      setError("Please provide a name of at least 2 characters.");
-      return;
-    }
-    onStart(trimmed);
-  };
+  const [isConfirmingAll, setIsConfirmingAll] = useState(false);
 
   // Get most recent result
   const latestResult = history.length > 0 ? history[0] : null;
@@ -72,95 +62,12 @@ export default function LandingPage({
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
       {/* Hero Header */}
-      <div className="text-center mb-10">
-        <motion.div
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-700 text-xs font-semibold tracking-wide mb-5 uppercase"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          Advanced Cognitive Cartography Protocol
-        </motion.div>
-        
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="font-display text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-4"
-        >
-          Tri-Ad Intelligence Mapping
-        </motion.h1>
-        
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto font-light leading-relaxed mb-6"
-        >
-          Calibrate your dynamic coordinates across three macro mental vectors and eight specialized micro-traits using programmatically verified min-max limits.
-        </motion.p>
-
-        {/* Instant Dashboard Demo Banner */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mb-8 max-w-2xl mx-auto bg-gradient-to-r from-indigo-50/70 via-amber-50/20 to-indigo-50/70 border border-indigo-150/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-left"
-        >
-          <div className="space-y-1">
-            <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-1.5 uppercase tracking-wide">
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-              </span>
-              🌟 Live Demonstration Sector Active
-            </h4>
-            <p className="text-[11px] text-slate-650 leading-relaxed">
-              Want to skip the 30-question diagnostic quiz and explore the complete visual dashboard, dynamic charts, carrier profiles, and PDF dispatch systems instantly? Load a preloaded demo workspace template.
-            </p>
-          </div>
-          <button
-            onClick={onLoadDemo}
-            className="px-4.5 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs hover:shadow-md whitespace-nowrap shrink-0"
-          >
-            Explore Demo Dashboard 🔮
-          </button>
-        </motion.div>
-
-        {/* Dashboard / Action Selector Premium Tab bar */}
-        <div className="inline-flex p-1 bg-slate-100 rounded-2xl border border-slate-200/60 shadow-inner">
-          <button
-            id="tab-new-assessment"
-            onClick={() => setActiveTab("assess")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-xs md:text-sm transition-all cursor-pointer ${
-              activeTab === "assess"
-                ? "bg-white text-indigo-950 font-semibold shadow-xs border border-slate-200/50"
-                : "text-slate-500 hover:text-slate-950"
-            }`}
-          >
-            <Brain className="w-4 h-4 shrink-0" />
-            Assessment Terminal
-          </button>
-          <button
-            id="tab-saved-profiles"
-            onClick={() => setActiveTab("progress")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-xs md:text-sm transition-all cursor-pointer relative ${
-              activeTab === "progress"
-                ? "bg-white text-indigo-950 font-semibold shadow-xs border border-slate-200/50"
-                : "text-slate-500 hover:text-slate-950"
-            }`}
-          >
-            <TrendingUp className="w-4 h-4 shrink-0" />
-            Saved Profiles & Progress Dashboard
-            {history.length > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[10px] font-bold font-mono px-2 py-0.5 rounded-full scale-90 shadow-md">
-                {history.length}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
+      <HeroSection
+        onLoadDemo={onLoadDemo}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        historyLength={history.length}
+      />
 
       {activeTab === "assess" ? (
         <motion.div
@@ -170,155 +77,15 @@ export default function LandingPage({
           transition={{ duration: 0.4 }}
         >
           {/* Bento Grid: The 3 Core Macro Dimensions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {/* IMAGINATION */}
-            <div className="bg-white rounded-3xl p-7 border border-slate-100 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
-              <div>
-                <div className="w-11 h-11 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 mb-5 border border-amber-100/50">
-                  <Sparkles className="w-5.5 h-5.5" />
-                </div>
-                <h3 className="font-display text-lg font-bold mb-2.5 text-slate-900">1. IMAGINATION</h3>
-                <p className="text-slate-600 text-xs leading-relaxed mb-5">
-                  The generative capacity to envision, construct, and alter concepts. Relates to your baseline mental spark and creative flow.
-                </p>
-                <div className="space-y-2 border-t border-slate-100 pt-4">
-                  <div className="flex justify-between items-start text-[11px]">
-                    <span className="font-semibold text-slate-800">Creativity (C)</span>
-                    <span className="text-slate-400">Mental abstraction, original styling.</span>
-                  </div>
-                  <div className="flex justify-between items-start text-[11px]">
-                    <span className="font-semibold text-slate-800">Innovation (I)</span>
-                    <span className="text-slate-400">Reconfiguration, holistic system tuning.</span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-5 text-[9px] text-slate-400 font-mono tracking-wider">DIMENSION_01_SPARK</div>
-            </div>
-
-            {/* INTUITION */}
-            <div className="bg-white rounded-3xl p-7 border border-slate-100 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
-              <div>
-                <div className="w-11 h-11 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-5 border border-emerald-100/50">
-                  <Compass className="w-5.5 h-5.5" />
-                </div>
-                <h3 className="font-display text-lg font-bold mb-2.5 text-slate-900">2. INTUITION</h3>
-                <p className="text-slate-600 text-xs leading-relaxed mb-5">
-                  The capacity to perceive recurring structures, transitions, and environmental dynamics without direct analytical proof.
-                </p>
-                <div className="space-y-2.5 border-t border-slate-100 pt-4">
-                  <div className="flex justify-between items-start text-[11px]">
-                    <span className="font-semibold text-slate-800">Physical (P)</span>
-                    <span className="text-slate-400">Somatic feedback, environmental sensor.</span>
-                  </div>
-                  <div className="flex justify-between items-start text-[11px]">
-                    <span className="font-semibold text-slate-800">Metaphysical (M)</span>
-                    <span className="text-slate-400">Transcendence, structural field values.</span>
-                  </div>
-                  <div className="flex justify-between items-start text-[11px]">
-                    <span className="font-semibold text-slate-800">Discernment (D)</span>
-                    <span className="text-slate-400">Tactile truth-testing, skepticism.</span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-5 text-[9px] text-slate-400 font-mono tracking-wider">DIMENSION_02_SENSE</div>
-            </div>
-
-            {/* JUDGMENT */}
-            <div className="bg-white rounded-3xl p-7 border border-slate-100 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
-              <div>
-                <div className="w-11 h-11 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-700 mb-5 border border-indigo-100/50">
-                  <Brain className="w-5.5 h-5.5" />
-                </div>
-                <h3 className="font-display text-lg font-bold mb-2.5 text-slate-900">3. JUDGMENT</h3>
-                <p className="text-slate-600 text-xs leading-relaxed mb-5">
-                  The foundational decision-making paradigm used to resolve logical, social, and functional trade-off dilemmas.
-                </p>
-                <div className="space-y-2.5 border-t border-slate-100 pt-4">
-                  <div className="flex justify-between items-start text-[11px]">
-                    <span className="font-semibold text-slate-800">Logical (L)</span>
-                    <span className="text-slate-400">System metrics, axiomatic consistency.</span>
-                  </div>
-                  <div className="flex justify-between items-start text-[11px]">
-                    <span className="font-semibold text-slate-800">Emotional (E)</span>
-                    <span className="text-slate-400">Human resonance, relational ethics.</span>
-                  </div>
-                  <div className="flex justify-between items-start text-[11px]">
-                    <span className="font-semibold text-slate-800">Predictive (R)</span>
-                    <span className="text-slate-400">Trend projection, timeline modeling.</span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-5 text-[9px] text-slate-400 font-mono tracking-wider">DIMENSION_03_DECIDE</div>
-            </div>
-          </div>
+          <HowItWorksSection />
 
           {/* Quick Info & Start Container */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             {/* Model Info */}
-            <div className="bg-[#f3f0e9]/40 border border-[#e7e1d5] rounded-3xl p-7 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <Shield className="w-5 h-5 text-indigo-700" />
-                  <h4 className="font-display text-base font-bold text-slate-800">Dynamic Normalization Baseline</h4>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed space-y-2 mb-4">
-                  Our algorithm calculates maximum and minimum theoretical bounds dynamically across every possible question path to assure your ultimate scores represent an objective distribution.
-                </p>
-                <div className="p-3 bg-white/70 rounded-xl border border-[#ded5c2] font-mono text-[10px] text-indigo-950/80 mb-3">
-                  Score = (Raw_Score - Min_Possible) / (Max_Possible - Min_Possible) * 100
-                </div>
-              </div>
-              <p className="text-[10px] text-slate-400 italic">
-                *We safeguard calibration integrity. Your score yields physical, metaphysical, and analytical projections without static biases.
-              </p>
-            </div>
+            <AudienceSection />
 
             {/* Launcher Card */}
-            <div className="bg-white border border-slate-100 rounded-3xl p-7 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <BookOpen className="w-5 h-5 text-indigo-700" />
-                  <h4 className="font-display text-base font-bold text-slate-800">Access calibration Terminal</h4>
-                </div>
-                <p className="text-xs text-slate-500 leading-relaxed mb-6">
-                  Input your identity credentials below to initialize the 30-question psychometric alignment process.
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-3.5">
-                  <label htmlFor="user-name" className="block text-[10.5px] font-bold uppercase tracking-wider text-slate-500">
-                    Assessor Nom de Guerre
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2.5">
-                    <div className="relative flex-1">
-                      <input
-                        id="user-name"
-                        type="text"
-                        placeholder="Introduce your identity..."
-                        value={name}
-                        onChange={(e) => {
-                          setName(e.target.value);
-                          if (error) setError("");
-                        }}
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 transition-all text-xs outline-none text-slate-900"
-                      />
-                      {error && (
-                        <p className="absolute left-0 -bottom-5 text-[10px] text-rose-500 font-semibold">{error}</p>
-                      )}
-                    </div>
-                    <button
-                      type="submit"
-                      id="btn-initialize-calibration"
-                      className="px-5 py-3 bg-slate-950 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-slate-800 transition-all cursor-pointer shadow-xs font-display shrink-0"
-                    >
-                      Connect Node
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
+            <CTASection onStart={onStart} />
           </div>
         </motion.div>
       ) : (
@@ -332,24 +99,24 @@ export default function LandingPage({
           {history.length === 0 ? (
             /* Empty State */
             <div className="bg-white rounded-3xl p-12 border border-slate-100 text-center shadow-xs max-w-lg mx-auto">
-              <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-5 border border-slate-150">
+              <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-5 border border-slate-200">
                 <Layers className="w-7 h-7" />
               </div>
               <h3 className="font-display text-lg font-bold text-slate-850 mb-2">No Profiles Calibrated</h3>
               <p className="text-xs text-slate-500 leading-relaxed mb-6">
-                You do not have any assessment history saved. Once you complete your first psychometric run, your dynamic cognitive scores, archetypes, and metrics will be persisted here across sessions.
+                You do not have any assessment history saved. Once you complete your first mapping run, your symbolic cognitive profile, archetypes, and metrics will be persisted here across sessions.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={() => setActiveTab("assess")}
-                  className="inline-flex items-center justify-center gap-1.5 px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-transform hover:-translate-y-0.5 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-all hover:-translate-y-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   Launch Assessment First
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={onLoadDemo}
-                  className="inline-flex items-center justify-center gap-1.5 px-4.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/50 rounded-xl text-xs font-semibold shadow-xs transition-transform hover:-translate-y-0.5 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/50 rounded-xl text-xs font-semibold shadow-xs transition-all hover:-translate-y-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
                 >
                   🔮 Explore Sample Dashboard
                 </button>
@@ -395,7 +162,7 @@ export default function LandingPage({
                       <button
                         onClick={() => onSelectHistorical && onSelectHistorical(latestResult)}
                         id="btn-latest-view-report"
-                        className="w-full py-2.5 bg-slate-905 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer font-display"
+                        className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer font-display focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         Explore Complete Report
@@ -412,11 +179,11 @@ export default function LandingPage({
                   </div>
                   {history.length === 1 ? (
                     <p className="text-[11.5px] text-slate-500 leading-relaxed">
-                      You have taken the assessment once. Calibration records are fully locked in your secure local sector. Take the exam again under different contexts to map cognitive drift!
+                      You have taken the self-reflection assessment once. Records are saved in your local sector. Try taking it again under different mental states to map cognitive balance adjustments!
                     </p>
                   ) : (
                     <p className="text-[11.5px] text-slate-500 leading-relaxed">
-                      Observing <strong>{history.length} assessment updates</strong>. Your code shift suggests active cerebral adaptation. Keep calibrations current to maintain high precision path recommendations.
+                      Observing <strong>{history.length} updates</strong>. Your symbolic trajectory suggests active adaptation. Try mapping again to explore your shifting profile balances.
                     </p>
                   )}
                 </div>
@@ -569,7 +336,39 @@ export default function LandingPage({
 
                 {/* All assessments index table */}
                 <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
-                  <h4 className="font-display text-sm font-bold text-slate-900 mb-4">Historical Calibration Entries</h4>
+                  <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3 flex-wrap gap-2">
+                    <h4 className="font-display text-sm font-bold text-slate-900">Historical Profile Entries</h4>
+                    {history.length > 0 && onClearAllHistory && (
+                      isConfirmingAll ? (
+                        <div className="flex items-center gap-1.5 shrink-0 text-left">
+                          <span className="text-[10px] text-rose-600 font-semibold hidden xs:inline">Deletes all local records:</span>
+                          <button
+                            onClick={() => {
+                              onClearAllHistory();
+                              setIsConfirmingAll(false);
+                            }}
+                            className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          >
+                            Yes, Clear All
+                          </button>
+                          <button
+                            onClick={() => setIsConfirmingAll(false)}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-medium cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setIsConfirmingAll(true)}
+                          className="text-[10.5px] font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-1 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete My Local Results
+                        </button>
+                      )
+                    )}
+                  </div>
                   
                   <div className="space-y-3">
                     {history.map((item) => {
@@ -585,11 +384,11 @@ export default function LandingPage({
                       return (
                         <div 
                           key={item.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 border border-slate-200/50 rounded-2xl hover:border-slate-350 transition-colors gap-3.5"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 border border-slate-200/50 rounded-2xl hover:border-slate-300 transition-colors gap-3.5"
                         >
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-xs text-indigo-700 bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-lg">
+                              <span className="font-semibold text-xs text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-lg">
                                 {item.profileCode}
                               </span>
                               <span className="text-xs font-bold font-display text-slate-850">
@@ -615,8 +414,8 @@ export default function LandingPage({
                               <button
                                 onClick={() => onSelectHistorical && onSelectHistorical(item)}
                                 id={`btn-view-profile-${item.id}`}
-                                title="Open assessment calibration dashboard"
-                                className="p-2 bg-white border border-slate-200/60 text-slate-600 hover:text-indigo-650 rounded-xl hover:border-indigo-150 transition-colors cursor-pointer"
+                                title="Open cognitive mapping dashboard"
+                                className="p-2 bg-white border border-slate-200/60 text-slate-600 hover:text-indigo-600 rounded-xl hover:border-indigo-200 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
                               >
                                 <Eye className="w-3.5 h-3.5" />
                               </button>
@@ -626,13 +425,13 @@ export default function LandingPage({
                                   <button
                                     onClick={() => onDeleteHistory && onDeleteHistory(item.id)}
                                     id={`btn-confirm-delete-${item.id}`}
-                                    className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
+                                    className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1"
                                   >
                                     Confirm
                                   </button>
                                   <button
                                     onClick={() => setConfirmDeleteId(null)}
-                                    className="px-2 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-[10px] font-medium cursor-pointer"
+                                    className="px-2 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-[10px] font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400"
                                   >
                                     Cancel
                                   </button>
@@ -641,8 +440,8 @@ export default function LandingPage({
                                 <button
                                   onClick={() => setConfirmDeleteId(item.id)}
                                   id={`btn-delete-profile-${item.id}`}
-                                  title="Delete diagnostic record from secure local storage"
-                                  className="p-2 text-slate-400 hover:text-rose-600 border border-transparent hover:border-rose-100 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
+                                  title="Delete profile record from secure local storage"
+                                  className="p-2 text-slate-400 hover:text-rose-600 border border-transparent hover:border-rose-100 hover:bg-rose-50 rounded-xl transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-500"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>

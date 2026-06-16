@@ -9,7 +9,7 @@ export const questions: Question[] = [
     options: [
       {
         text: "I envision abstract, symbolic structures that integrate art with technology, prioritizing human inspiration.",
-        weights: { creativity: 2, innovation: 0, physical: 0, metaphysical: 1, logical: -1 }
+        weights: { creativity: 2, innovation: -1, physical: 0, metaphysical: 1, logical: -1 }
       },
       {
         text: "I immediately map out existing designs, looking for modules to reconfigure, optimize, and safely assemble.",
@@ -17,7 +17,7 @@ export const questions: Question[] = [
       },
       {
         text: "I trust my initial visceral gut feeling about how visitors will navigate and inhabit the space physically.",
-        weights: { physical: 2, discernment: 1, creativity: 1, metaphysical: 0 }
+        weights: { physical: 2, discernment: 1, creativity: 1, predictive: -1 }
       },
       {
         text: "I model historical patterns of closed-habitat collapses to project structural risks over a 50-year horizon.",
@@ -32,7 +32,7 @@ export const questions: Question[] = [
     options: [
       {
         text: "I devise an entirely novel, unproven programming paradigm that bypasses typical compiler constraints.",
-        weights: { creativity: 2, innovation: 1, discernment: -1, logical: 0 }
+        weights: { creativity: 2, innovation: 1, discernment: -1, predictive: -1 }
       },
       {
         text: "I synthesize two open-source frameworks, optimizing their configuration to resolve the block efficiently.",
@@ -44,7 +44,7 @@ export const questions: Question[] = [
       },
       {
         text: "I reflect on the team's working dynamics, diagnosing if cognitive stress is driving code quality degradation.",
-        weights: { emotional: 2, metaphysical: 1, physical: 0 }
+        weights: { emotional: 2, metaphysical: 1, predictive: -1, innovation: -1 }
       }
     ]
   },
@@ -55,7 +55,7 @@ export const questions: Question[] = [
     options: [
       {
         text: "I seek out avant-garde art installations, interpreting the symbolic and deeper abstract meaning of the architecture.",
-        weights: { creativity: 2, metaphysical: 1, physical: -1, discernment: 0 }
+        weights: { creativity: 2, metaphysical: 1, physical: -1, innovation: -1, predictive: -1 }
       },
       {
         text: "I analyze the transit grids, public spaces, and urban layouts to understand how they can be streamlined.",
@@ -86,11 +86,11 @@ export const questions: Question[] = [
       },
       {
         text: "I maintain deep physical calmness, monitoring hardware indicators, port loads, and raw system telemetry.",
-        weights: { physical: 2, discernment: 1, emotional: -1 }
+        weights: { physical: 2, discernment: 1, emotional: -1, predictive: -1 }
       },
       {
         text: "I gather the engineers, keeping morale steady, mediating panic, and protecting collective psychological safety.",
-        weights: { emotional: 2, metaphysical: 1, creativity: 1 }
+        weights: { emotional: 2, metaphysical: 1, creativity: 1, predictive: -1, innovation: -1 }
       }
     ]
   },
@@ -101,7 +101,7 @@ export const questions: Question[] = [
     options: [
       {
         text: "Metaphorical doodles, symbolic maps, and free-association words that provoke non-linear ideas.",
-        weights: { creativity: 2, metaphysical: 2, logical: -2, innovation: 0 }
+        weights: { creativity: 2, metaphysical: 2, logical: -2, innovation: -2, predictive: -1 }
       },
       {
         text: "Structured flowcharts and system diagrams showing how modular pieces can integrate perfectly.",
@@ -124,7 +124,7 @@ export const questions: Question[] = [
     options: [
       {
         text: "As a potential awakening of a new non-material consciousness, shifting the metaphysical paradigm of existence.",
-        weights: { metaphysical: 2, creativity: 2, logical: -1, physical: -1 }
+        weights: { metaphysical: 2, creativity: 2, logical: -1, physical: -1, predictive: -2, innovation: -1 }
       },
       {
         text: "As a highly advanced statistical optimizer built to parse patterns and enhance existing economic frameworks.",
@@ -132,7 +132,7 @@ export const questions: Question[] = [
       },
       {
         text: "As a mechanical threat to human connection that requires deep ethical guardrails to protect empathy.",
-        weights: { emotional: 2, discernment: 1, physical: 1, innovation: -1 }
+        weights: { emotional: 2, discernment: 1, physical: 1, innovation: -1, predictive: -1 }
       },
       {
         text: "As a feedback loop of historical data, where neural networks reproduce and amplify long-term cyclical trends.",
