@@ -29,13 +29,14 @@ export default function App() {
   const [currentTimeStr, setCurrentTimeStr] = useState("");
 
   const handleLoadDemo = () => {
-    const arch = getArchetype("CDL");
+    const demoNormalized = { creativity: 84, innovation: 72, physical: 45, metaphysical: 78, discernment: 82, logical: 88, emotional: 60, predictive: 92 };
+    const arch = getArchetype("CDL", demoNormalized);
     const demoResult: AssessmentResult = {
       id: "res-demo-v2",
       timestamp: new Date().toISOString(),
       userName: "Alexander Vance (Demo)",
       rawScores: { creativity: 84, innovation: 72, physical: 45, metaphysical: 78, discernment: 82, logical: 88, emotional: 60, predictive: 92 },
-      normalizedScores: { creativity: 84, innovation: 72, physical: 45, metaphysical: 78, discernment: 82, logical: 88, emotional: 60, predictive: 92 },
+      normalizedScores: demoNormalized,
       macroScores: { imagination: 78, intuition: 68.3, judgment: 80 },
       profileCode: "CDL",
       archetype: arch
@@ -82,7 +83,7 @@ export default function App() {
     const profileCode = generateProfileCode(normalizedScores);
 
     // 6. Gather carrier archetype details
-    const archetype = getArchetype(profileCode);
+    const archetype = getArchetype(profileCode, normalizedScores);
 
     // 7. Store final assessment bundle
     const newResult: AssessmentResult = {

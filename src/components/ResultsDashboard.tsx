@@ -1788,7 +1788,7 @@ Formulate your blueprint coordinate structure at:`;
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                 {history.map((record) => {
                   const isCurrent = record.id === result.id;
-                  const itemArchetype = getArchetype(record.profileCode);
+                  const itemArchetype = getArchetype(record.profileCode, record.normalizedScores);
 
                   return (
                     <tr 

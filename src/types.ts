@@ -55,6 +55,11 @@ export interface ArchetypeDetails {
   strengths: string[];
   challenges: string[];
   careerPaths: string[];
+  extension?: {
+    code: string; // "-F" or "-A"
+    name: string; // "Fluid" or "Anchored"
+    description: string; // explanation
+  };
 }
 
 export interface AssessmentResult {

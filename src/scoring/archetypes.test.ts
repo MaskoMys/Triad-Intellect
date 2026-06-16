@@ -33,7 +33,7 @@ describe("Archetypes Database Validation Tests", () => {
     const fallback = getArchetype("XYZ");
     expect(fallback).toBeDefined();
     expect(fallback.code).toBe("XYZ");
-    expect(fallback.name).toBe("The Cognitive Pioneer");
+    expect(fallback.name).toBe("The Cognitive Pioneer (Anchored)");
     expect(fallback.tagline).toBeTruthy();
     expect(fallback.description).toBeTruthy();
     expect(fallback.strengths.length).toBeGreaterThan(0);

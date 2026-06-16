@@ -223,7 +223,39 @@ export function generateProfileCode(scores: TraitScores): string {
 }
 
 // Generate descriptive profiles for the 18 combinations
-export function getArchetype(code: string): ArchetypeDetails {
+export function getArchetype(code: string, scores?: TraitScores): ArchetypeDetails {
+  // Extract base code and check for pre-existing extension suffix
+  let baseCode = code;
+  let extLetter = "";
+  
+  if (code.includes("-")) {
+    const parts = code.split("-");
+    baseCode = parts[0] || code;
+    extLetter = parts[1] || "";
+  }
+  
+  // If scores are provided, they take precedence for extension calculation
+  if (scores) {
+    const fluidVal = (scores.creativity ?? 0) + (scores.metaphysical ?? 0) + (scores.emotional ?? 0);
+    const anchoredVal = (scores.innovation ?? 0) + (scores.discernment ?? 0) + (scores.logical ?? 0);
+    extLetter = fluidVal > anchoredVal ? "F" : "A";
+  }
+  
+  // Default to 'A' (Anchored) if we don't have enough data to determine a suffix
+  if (!extLetter) {
+    extLetter = "A";
+  }
+
+  const extensionDetails = extLetter === "F" ? {
+    code: "-F",
+    name: "Fluid",
+    description: "Your cognitive percentages reveal a highly adaptable, generative processing style (Fluid). You show a net bias toward experiential flow, intuitive exploration, and rich emotional resonance. You thrive in open-ended, ambiguous environments where you can dynamically synthesize novel possibilities."
+  } : {
+    code: "-A",
+    name: "Anchored",
+    description: "Your cognitive percentages reveal a highly structured, analytical execution style (Anchored). You show a net bias toward empirical validation, systemic logic, and high-yield operational refinement. You thrive in environments requiring rigorous correctness, clear parameters, and stable execution."
+  };
+
   const lookup: Record<string, Omit<ArchetypeDetails, 'code'>> = {
     "CDL": {
       name: "The Sovereign Analyst",
@@ -381,10 +413,23 @@ export function getArchetype(code: string): ArchetypeDetails {
     careerPaths: ["Multistakeholder Project Director", "Complex Problem Solver", "Strategic Consultant"]
   };
 
-  const details = lookup[code] || generic;
+  const details = lookup[baseCode] || generic;
+  const returnCode = scores ? `${baseCode}-${extLetter}` : code;
 
   return {
-    code,
-    ...details
+    code: returnCode,
+    name: `${details.name} (${extensionDetails.name})`,
+    tagline: details.tagline,
+    description: `${details.description} ${extensionDetails.description}`,
+    strengths: [
+      ...details.strengths,
+      extLetter === "F" ? "Highly adaptive in fast-changing dynamic scenarios." : "Strong stability filter in complex execution phases."
+    ],
+    challenges: [
+      ...details.challenges,
+      extLetter === "F" ? "Can struggle to lock down stable specifications." : "Can be overly critical of unvalidated, ambiguous paths."
+    ],
+    careerPaths: details.careerPaths,
+    extension: extensionDetails
   };
 }
