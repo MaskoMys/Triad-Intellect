@@ -420,7 +420,7 @@ export async function generateReportPdf(result: Partial<AssessmentResult>): Prom
   doc.text(checksum, 22, y2 + 12);
   
   // Safe disclaimer without verified or psychological/clinical claims
-  const disclaimerText = "Disclaimer: Tri-Ad is an experimental self-reflection and personal mapping visualization tool. This document is compiled for entertainment, informational, and personal reflection purposes only. It is not an objective psychological test, diagnostic assessment, clinical profile, or validated psychometric test, and does not constitute certified mental health, advisory, or medical advice.";
+  const disclaimerText = "Disclaimer: Tri-Ad is an experimental self-reflection tool. It is not a clinical, educational, employment, financial, medical, or psychological diagnostic instrument.";
   const wrappedDisclaimer = doc.splitTextToSize(disclaimerText, 166);
   doc.text(wrappedDisclaimer, 22, y2 + 15);
 

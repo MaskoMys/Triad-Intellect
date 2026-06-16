@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { 
   Download, Trash2, Calendar, User, Eye, BookOpen, 
   Award, RefreshCw, Trophy, ArrowUpRight, HelpCircle,
@@ -8,6 +8,7 @@ import { motion } from "motion/react";
 import { generateReportPdf } from "../pdf/generateReportPdf";
 import { AssessmentResult, TraitKey, MacroScores } from "../types";
 import { traitLabels, traitDescriptions, getArchetype } from "../utils";
+import PremiumOrderModal from "./results/PremiumOrderModal";
 
 export interface RangeDecode {
   tier: string;
@@ -28,7 +29,7 @@ export function decodeMetricPercentage(key: string, pct: number): RangeDecode {
     imagination: {
       low: {
         tier: "Applied Reality / Concrete Realist (0% - 39%)",
-        badgeClass: "text-amber-750 bg-amber-50/70 border-amber-200 text-amber-800",
+        badgeClass: "text-amber-700 bg-amber-50/70 border-amber-200 text-amber-800",
         explanation: "You focus intensely on existing structures and practical constraints. Rather than spinning up speculative or unproven theories, you excel at refining, executing, and perfecting current technologies, preventing wasteful departures from what is known to work.",
         positives: ["Exceptional stability and immediate execution", "Avoids blue-sky speculation traps", "Highly pragmatic and grounded design filters"],
         vulnerabilities: ["May resist paradigm-shifting technologies", "Risk of incrementalism and over-optimization", "Prefers safe, well-paved lanes over discovery"]
@@ -58,7 +59,7 @@ export function decodeMetricPercentage(key: string, pct: number): RangeDecode {
     intuition: {
       low: {
         tier: "Empiricist / Fact-Grounded Pragmatist (0% - 39%)",
-        badgeClass: "text-amber-750 bg-amber-50/70 border-amber-200 text-amber-805",
+        badgeClass: "text-amber-700 bg-amber-50/70 border-amber-200 text-amber-800",
         explanation: "You filter the world primarily through explicit, tactile, and objective evidence. You place very low trust in vague gut-feelings or unverified whispers, requiring logical or physical proofs before committing your resources. A score in this range means you are a vital factual anchor, preventing wild speculative leaps.",
         positives: ["Immutable filter against hype, noise, and bias", "Demands high-contrast, structured proof", "Extremely reliable sensory tracking"],
         vulnerabilities: ["May miss subtle non-verbal signals or shifts", "Can delay action during fast, low-data situations", "Skeptical of innovative but unproven patterns"]
@@ -88,7 +89,7 @@ export function decodeMetricPercentage(key: string, pct: number): RangeDecode {
     judgment: {
       low: {
         tier: "Organic Processor / Fluid Adaptor (0% - 39%)",
-        badgeClass: "text-amber-750 bg-amber-50/70 border-amber-200 text-amber-805",
+        badgeClass: "text-amber-700 bg-amber-50/70 border-amber-200 text-amber-800",
         explanation: "You reject placing people or complex systemic processes into rigid, binary, or bureaucratic boxes. You treat rules as flexible guides, allowing decisions to evolve organically and contextually. You lean heavily on immediate, empathetic adjustments.",
         positives: ["Extremely comfortable in chaotic, low-structure environments", "Prioritizes relational context and flexibility", "Outstanding agile conflict resolution style"],
         vulnerabilities: ["May struggle in rigid administrative audits", "Risks of inconsistency across similar cases", "Harder to maintain strict mechanical scale boundaries"]
@@ -142,7 +143,7 @@ export function decodeMetricPercentage(key: string, pct: number): RangeDecode {
       },
       extreme: {
         tier: "Prime Paradigm Pioneer / Infinite Generator (85% - 100%)",
-        badgeClass: "text-violet-750 bg-violet-50/70 border-violet-200 text-violet-850",
+        badgeClass: "text-violet-700 bg-violet-50/70 border-violet-200 text-violet-800",
         explanation: "You live in a fertile wilderness of pure mental representation. You reject standard templates, seeking instead to completely redefine forms, paradigms, and visual worlds. Your creations push boundary limits, seeking absolute original depth.",
         positives: ["Pioneers entirely new visual or conceptual paradigms", "Infinite supply of original metaphors and ideas", "Total fearlessness in structural creative expression"],
         vulnerabilities: ["Huge gap between conceptual dreams and daily execution", "Risk of alienating traditional audiences with extreme complexity", "Finds standard templates highly choking and stressful"]
@@ -232,7 +233,7 @@ export function decodeMetricPercentage(key: string, pct: number): RangeDecode {
       },
       extreme: {
         tier: "Cosmic Sentinel / Transcendent Catalyst (85% - 100%)",
-        badgeClass: "text-teal-700 bg-teal-50/75 border-teal-200 text-teal-850",
+        badgeClass: "text-teal-700 bg-teal-50/75 border-teal-200 text-teal-800",
         explanation: "You operate heavily in the metaphysical field, seeing humanity as a spiritual ecosystem. Your choices are guided by deep contemplations, synchronicities, or energetic flows. You act as an inspirational catalyst, aligning structures to higher values.",
         positives: ["Pioneers profound cultural or spiritual transformations", "Unrivaled pattern jumps and mystical insight outputs", "Brings deep soul and cosmic purpose to workflows"],
         vulnerabilities: ["Extremely vulnerable to material reality detachment", "Struggles with basic binary rules, taxes, and admin checklists", "Can sacrifice logical safety to preserve abstract ideals"]
@@ -433,11 +434,6 @@ export default function ResultsDashboard({
 
   // Premium report order
   const [premiumOrderOpen, setPremiumOrderOpen] = useState(false);
-  const [premiumOrderAddress, setPremiumOrderAddress] = useState(result.userEmail || "");
-  const [premiumOrderStatus, setPremiumOrderStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [premiumOrderError, setPremiumOrderError] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
-  const [turnstileToken, setTurnstileToken] = useState("");
 
   // Beta feedback state parameters
   const [accuracyRating, setAccuracyRating] = useState<number | null>(result.feedback?.accuracyRating ?? null);
@@ -494,81 +490,6 @@ export default function ResultsDashboard({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
-
-  const turnstileContainerRef = useRef<HTMLDivElement>(null);
-  const turnstileWidgetId = useRef<string | null>(null);
-  const turnstileSiteKey = (((import.meta as any).env)?.VITE_TURNSTILE_SITE_KEY || "") as string;
-
-  useEffect(() => {
-    if (!turnstileSiteKey || !premiumOrderOpen) return;
-
-    const loadRef = { current: true };
-
-    const loadTurnstile = () => {
-      if (!loadRef.current) return;
-      const containerObj = turnstileContainerRef.current;
-      if ((window as any).turnstile && containerObj && !turnstileWidgetId.current) {
-        try {
-          turnstileWidgetId.current = (window as any).turnstile.render(containerObj, {
-            sitekey: turnstileSiteKey,
-            callback: (token: string) => {
-              setTurnstileToken(token);
-              if (premiumOrderError) setPremiumOrderError("");
-            },
-            "expired-callback": () => {
-              setTurnstileToken("");
-            },
-            "error-callback": () => {
-              setTurnstileToken("");
-            }
-          });
-        } catch (e) {
-          console.error("Turnstile render error:", e);
-        }
-      }
-    };
-
-    if (!(window as any).turnstile) {
-      const existingScript = document.getElementById("cloudflare-turnstile-script");
-      if (!existingScript) {
-        const script = document.createElement("script");
-        script.id = "cloudflare-turnstile-script";
-        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback";
-        script.async = true;
-        script.defer = true;
-        (window as any).onloadTurnstileCallback = () => {
-          loadTurnstile();
-        };
-        document.body.appendChild(script);
-      } else {
-        const interval = setInterval(() => {
-          if ((window as any).turnstile) {
-            clearInterval(interval);
-            loadTurnstile();
-          }
-        }, 100);
-        return () => {
-          loadRef.current = false;
-          clearInterval(interval);
-        };
-      }
-    } else {
-      setTimeout(() => {
-        loadTurnstile();
-      }, 50);
-    }
-
-    return () => {
-      loadRef.current = false;
-      if (turnstileWidgetId.current && (window as any).turnstile) {
-        try {
-          (window as any).turnstile.remove(turnstileWidgetId.current);
-        } catch (e) {}
-        turnstileWidgetId.current = null;
-      }
-      setTurnstileToken("");
-    };
-  }, [turnstileSiteKey, premiumOrderOpen]);
 
   const { userName, timestamp, profileCode, normalizedScores, macroScores, archetype } = result;
 
@@ -861,62 +782,6 @@ Formulate your blueprint coordinate structure at:`;
     setCaptureAction(null);
   };
 
-  const handlePremiumOrderSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!premiumOrderAddress || !premiumOrderAddress.includes("@")) {
-      setPremiumOrderError("Please enter a valid email address.");
-      return;
-    }
-
-    if (!inviteCode.trim()) {
-      setPremiumOrderError("Please enter your beta invite designator code.");
-      return;
-    }
-
-    if (turnstileSiteKey && !turnstileToken) {
-      setPremiumOrderError("Please complete the security Turnstile verification.");
-      return;
-    }
-
-    setPremiumOrderStatus("submitting");
-    setPremiumOrderError("");
-
-    try {
-      const response = await fetch("/api/premium-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: premiumOrderAddress,
-          name: userName,
-          profileCode: profileCode,
-          macroScores: macroScores,
-          timestamp: timestamp,
-          inviteCode: inviteCode,
-          turnstileToken: turnstileToken,
-          feedback: result.feedback
-        })
-      });
-
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setPremiumOrderStatus("success");
-        // Also write email to results if they don't have one
-        if (!result.userEmail && onUpdateResult) {
-          onUpdateResult({
-            ...result,
-            userEmail: premiumOrderAddress
-          });
-          setCaptureEmailAddress(premiumOrderAddress);
-        }
-      } else {
-        setPremiumOrderStatus("error");
-        setPremiumOrderError(data.message || "Failed to submit premium requisition.");
-      }
-    } catch (err) {
-      setPremiumOrderStatus("error");
-      setPremiumOrderError("Network connection error. Server rejected request.");
-    }
-  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -947,7 +812,7 @@ Formulate your blueprint coordinate structure at:`;
         <div>
           <p className="font-semibold text-slate-800">Classification Disclaimer</p>
           <p className="leading-relaxed mt-0.5">
-            Tri-Ad is an experimental self-reflection tool. It is not a clinical, medical, or psychological diagnostic instrument. Its findings are symbolic and intended solely for personal exploration and contemplation.
+            Tri-Ad is an experimental self-reflection tool. It is not a clinical, educational, employment, financial, medical, or psychological diagnostic instrument.
           </p>
         </div>
       </div>
@@ -1491,7 +1356,7 @@ Formulate your blueprint coordinate structure at:`;
                       }
                       setCustomPercent(Math.round(original));
                     }}
-                    className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold hover:bg-slate-55 hover:border-slate-300 transition-all flex items-center gap-1.5"
+                    className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-1.5"
                   >
                     <RefreshCw className="w-3 h-3 text-slate-400" />
                     Reset to Your Score ({Math.round(
@@ -1506,25 +1371,25 @@ Formulate your blueprint coordinate structure at:`;
                   </button>
                   <button
                     onClick={() => setCustomPercent(25)}
-                    className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold hover:bg-slate-55 hover:border-slate-300 transition-all"
+                    className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all"
                   >
                     Low (25%)
                   </button>
                   <button
                     onClick={() => setCustomPercent(50)}
-                    className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold hover:bg-slate-55 hover:border-slate-300 transition-all"
+                    className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all"
                   >
                     Moderate (50%)
                   </button>
                   <button
                     onClick={() => setCustomPercent(75)}
-                    className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold hover:bg-slate-55 hover:border-slate-300 transition-all"
+                    className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all"
                   >
                     High (75%)
                   </button>
                   <button
                     onClick={() => setCustomPercent(95)}
-                    className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold hover:bg-slate-55 hover:border-slate-300 transition-all"
+                    className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all"
                   >
                     Absolute (95%)
                   </button>
@@ -1623,8 +1488,6 @@ Formulate your blueprint coordinate structure at:`;
           <div className="w-full lg:w-auto shrink-0 flex flex-col gap-2.5 min-w-[240px]">
             <button
               onClick={() => {
-                setPremiumOrderStatus("idle");
-                setPremiumOrderError("");
                 setPremiumOrderOpen(true);
               }}
               className="w-full py-3.5 px-6 rounded-xl font-display font-bold text-xs md:text-sm tracking-wider uppercase text-slate-900 bg-gradient-to-r from-yellow-300 via-amber-300 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/10 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
@@ -1713,7 +1576,7 @@ Formulate your blueprint coordinate structure at:`;
       <form onSubmit={handleSaveFeedback} className="bg-white border border-slate-100 rounded-3xl p-6 md:p-10 mb-12 shadow-xs space-y-6">
         <div>
           <h3 className="font-display text-xl font-bold text-gray-900 flex items-center gap-2">
-            <HelpCircle className="w-5 h-5 text-indigo-650 animate-pulse" />
+            <HelpCircle className="w-5 h-5 text-indigo-600 animate-pulse" />
             Beta Model Evaluation &amp; Calibration
           </h3>
           <p className="text-xs text-slate-500 mt-1">
@@ -1901,7 +1764,7 @@ Formulate your blueprint coordinate structure at:`;
               ) : (
                 <button
                   onClick={() => setIsConfirmingAll(true)}
-                  className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/40 hover:border-rose-300/60 text-rose-705 font-bold rounded-xl text-xs cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-1"
+                  className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/40 hover:border-rose-300/60 text-rose-700 font-bold rounded-xl text-xs cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 flex items-center gap-1"
                 >
                   <Trash2 className="w-3.5 h-3.5 text-rose-600" />
                   Delete My Local Results
@@ -2041,7 +1904,7 @@ Formulate your blueprint coordinate structure at:`;
               </div>
               <button
                 onClick={() => setIsShareOpen(false)}
-                className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-850 transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2059,7 +1922,7 @@ Formulate your blueprint coordinate structure at:`;
                   <FileText className="w-5 h-5 text-orange-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-slate-850 group-hover:text-indigo-900 transition-colors">
+                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-900 transition-colors">
                     Option A: Share Identity Summary (Text)
                   </h4>
                   <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
@@ -2085,7 +1948,7 @@ Formulate your blueprint coordinate structure at:`;
                   <Award className="w-5 h-5 text-indigo-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-slate-850 group-hover:text-indigo-900 transition-colors">
+                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-900 transition-colors">
                     Option B: Share Portrait Document (PDF)
                   </h4>
                   <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
@@ -2223,159 +2086,28 @@ Formulate your blueprint coordinate structure at:`;
       )}
 
       {/* Premium Order Placement Modal */}
-      {premiumOrderOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"
-            onClick={() => setPremiumOrderOpen(false)}
-          />
-
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-slate-200 shadow-2xl relative z-10 overflow-hidden"
-          >
-            {/* Header */}
-            <div className="flex justify-between items-start mb-5">
-              <div>
-                <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-yellow-600 bg-yellow-50 border border-yellow-105 px-2.5 py-1 rounded-lg">
-                  ✦ Premium Exploratory Upgrade
-                </span>
-                <h3 className="font-display text-xl font-bold text-slate-900 mt-2">
-                  Request Premium Dossier
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Securely request an expanded 40-page blueprint document.
-                </p>
-              </div>
-              <button
-                onClick={() => setPremiumOrderOpen(false)}
-                className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Profile Info Summary */}
-            <div className="bg-indigo-50/50 border border-indigo-100/60 rounded-2xl p-4 mb-5">
-              <div className="text-xs text-indigo-700 font-semibold font-mono uppercase tracking-wider">
-                Target Node Designation
-              </div>
-              <div className="flex justify-between items-end mt-1">
-                <div>
-                  <div className="text-md font-bold text-slate-950">{userName}</div>
-                  <div className="text-xs text-slate-500 italic font-mono mt-0.5">Profile Coordinate: {profileCode}</div>
-                </div>
-                <div className="text-2xl font-black text-indigo-600 font-display">{profileCode}</div>
-              </div>
-            </div>
-
-            {/* Order Form */}
-            {premiumOrderStatus === "success" ? (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-6"
-              >
-                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-xl font-bold">✓</span>
-                </div>
-                <h4 className="text-md font-bold text-slate-900">Premium Order Lodged!</h4>
-                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed max-w-xs mx-auto">
-                  Requisition compiled and dispatched directly to the <span className="font-semibold text-slate-700">system administrator</span>. Delivery is scheduled shortly.
-                </p>
-                <button
-                  onClick={() => setPremiumOrderOpen(false)}
-                  className="mt-6 w-full py-2.5 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-all cursor-pointer"
-                >
-                  Return to Dashboard
-                </button>
-              </motion.div>
-            ) : (
-              <form onSubmit={handlePremiumOrderSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="premium-email-input" className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Your Delivery Email Address
-                  </label>
-                  <input
-                    id="premium-email-input"
-                    type="email"
-                    required
-                    placeholder="name@organization.com"
-                    value={premiumOrderAddress}
-                    onChange={(e) => {
-                      setPremiumOrderAddress(e.target.value);
-                      if (premiumOrderError) setPremiumOrderError("");
-                    }}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none bg-slate-50 focus:bg-white text-slate-900 font-medium transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="premium-invite-input" className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Beta Invitation Code
-                  </label>
-                  <input
-                    id="premium-invite-input"
-                    type="text"
-                    required
-                    placeholder="Enter beta access key (e.g. BETA30)"
-                    value={inviteCode}
-                    onChange={(e) => {
-                      setInviteCode(e.target.value);
-                      if (premiumOrderError) setPremiumOrderError("");
-                    }}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none bg-slate-50 focus:bg-white text-slate-900 font-medium transition-all"
-                  />
-                </div>
-
-                {turnstileSiteKey && (
-                  <div className="pt-1.5">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                      Security Verification
-                    </label>
-                    <div ref={turnstileContainerRef} className="cf-turnstile-wrapper bg-slate-50 border border-slate-200 p-2.5 rounded-xl flex items-center justify-center min-h-[65px]" />
-                  </div>
-                )}
-
-                {premiumOrderError && (
-                  <p className="text-[11px] text-red-600 font-medium mt-1">{premiumOrderError}</p>
-                )}
-
-                <p className="text-[10px] text-slate-400 bg-slate-50 border border-slate-100 rounded-xl p-3 leading-relaxed">
-                  ✦ <strong>Requisition Details:</strong> Complex blueprint reporting requires offline assembly. Submission sends an electronic notification to the <strong>system administrator</strong> who manually validates and dispatches your expanded 40-page blueprint PDF.
-                </p>
-
-                <div className="flex gap-2.5 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setPremiumOrderOpen(false)}
-                    className="flex-1 py-3 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={premiumOrderStatus === "submitting"}
-                    className="flex-1 py-3 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  >
-                    {premiumOrderStatus === "submitting" ? (
-                      <>
-                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      "Place Premium Order"
-                    )}
-                  </button>
-                </div>
-              </form>
-            )}
-          </motion.div>
-        </div>
-      )}
+      <PremiumOrderModal
+        isOpen={premiumOrderOpen}
+        onClose={() => setPremiumOrderOpen(false)}
+        userName={userName}
+        profileCode={profileCode}
+        macroScores={macroScores}
+        initialEmail={result.userEmail || captureEmailAddress}
+        initialFeedback={{
+          mostTrue: result.feedback?.mostTrue || "",
+          mostWrong: result.feedback?.mostWrong || ""
+        }}
+        onSuccess={(submittedEmail) => {
+          // Write email to results if they don't have one
+          if (!result.userEmail && onUpdateResult) {
+            onUpdateResult({
+              ...result,
+              userEmail: submittedEmail
+            });
+            setCaptureEmailAddress(submittedEmail);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -1,40 +1,39 @@
-name: Continuous Integration
+name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main]
   pull_request:
-    branches: [ main, master ]
+    branches: [main]
 
 jobs:
-  validate:
-    name: Build, Test & Validate
+  quality:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: npm
 
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Run Type Checking
+      - name: Typecheck
         run: npm run typecheck
 
-      - name: Run Unit Tests
+      - name: Test
         run: npm run test
 
-      - name: Run Production Build
-        run: npm run build
-
-      - name: Verify Scoring Analytics
+      - name: Analyze scoring
         run: npm run analyze:scoring
 
-      - name: Audit Production Dependencies
-        run: npm audit --omit=dev
+      - name: Build
+        run: npm run build
+
+      - name: Production dependency audit
+        run: npm run audit:prod

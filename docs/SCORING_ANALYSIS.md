@@ -1,6 +1,6 @@
 # Scoring, Weight & Archetype Balance Report
 
-This diagnostic assessment report was generated automatically via the Developer Diagnostics System to analyze the balance, reachability, and distribution of the Tri-Ad Cognitive Archetype Mapper.
+This analysis report was generated automatically via the Developer Diagnostics System to analyze the balance, reachability, and distribution of the Tri-Ad Cognitive Archetype Mapper.
 
 ---
 
@@ -65,30 +65,30 @@ Simulated outputs from **100,000** randomized responder runs, establishing real 
 
 | Archetype Code | Description Identifier | Simulated Hits | Percentage Allocation |
 | :--- | :--- | :---: | :---: |
-| **IDL** | The Master Systems Optimizer | 14,153 | 14.15% |
-| **CME** | The Transcendent Catalyst | 13,633 | 13.63% |
-| **CDL** | The Sovereign Analyst | 9,073 | 9.07% |
-| **IPE** | The Somatic Facilitator | 8,368 | 8.37% |
-| **CPE** | The Somatic Storyteller | 7,837 | 7.84% |
-| **CMR** | The Esoteric Seer | 5,858 | 5.86% |
-| **IPL** | The Logistics Commander | 5,823 | 5.82% |
-| **IDR** | The Systems Futurist | 4,611 | 4.61% |
-| **CML** | The Alchemist-Philosopher | 3,943 | 3.94% |
-| **IME** | The Community Weaver | 3,870 | 3.87% |
-| **CDE** | The Ethical Jurist | 3,796 | 3.80% |
-| **IPR** | The Predictive Engineer | 3,617 | 3.62% |
-| **CDR** | The Temporal Strategist | 3,302 | 3.30% |
-| **IMR** | The Evolutionary Prophet | 3,106 | 3.11% |
-| **IDE** | The Organizational Integrator | 2,746 | 2.75% |
-| **CPL** | The Tactile Craftsman | 2,431 | 2.43% |
-| **IML** | The Technomancer Architect | 1,968 | 1.97% |
-| **CPR** | The Somatic Forecaster | 1,865 | 1.86% |
+| **IDL** | The Master Systems Optimizer | 14,236 | 14.24% |
+| **CME** | The Transcendent Catalyst | 13,540 | 13.54% |
+| **CDL** | The Sovereign Analyst | 8,987 | 8.99% |
+| **IPE** | The Somatic Facilitator | 8,402 | 8.40% |
+| **CPE** | The Somatic Storyteller | 7,908 | 7.91% |
+| **CMR** | The Esoteric Seer | 5,928 | 5.93% |
+| **IPL** | The Logistics Commander | 5,849 | 5.85% |
+| **IDR** | The Systems Futurist | 4,460 | 4.46% |
+| **CML** | The Alchemist-Philosopher | 3,976 | 3.98% |
+| **CDE** | The Ethical Jurist | 3,767 | 3.77% |
+| **IME** | The Community Weaver | 3,732 | 3.73% |
+| **IPR** | The Predictive Engineer | 3,602 | 3.60% |
+| **CDR** | The Temporal Strategist | 3,367 | 3.37% |
+| **IMR** | The Evolutionary Prophet | 3,247 | 3.25% |
+| **IDE** | The Organizational Integrator | 2,739 | 2.74% |
+| **CPL** | The Tactile Craftsman | 2,371 | 2.37% |
+| **IML** | The Technomancer Architect | 1,985 | 1.98% |
+| **CPR** | The Somatic Forecaster | 1,904 | 1.90% |
 
 ### ⚠️ Reachability Risk & Skew Analysis
 
 * **Highly Reachable / High Concentration (>= 10%):**
-  * **IDL** (14.15%)
-  * **CME** (13.63%)
+  * **IDL** (14.24%)
+  * **CME** (13.54%)
 
 * **Under-represented / Hard to Reach (< 1.5%):**
   * None

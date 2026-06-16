@@ -7,7 +7,7 @@ export default function DisclaimerSection() {
       <div className="text-[10.5px] text-slate-500 bg-slate-50 border border-slate-200/50 rounded-xl p-3 flex gap-2">
         <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
         <p className="leading-snug text-left">
-          <strong>Experimental Protocol:</strong> Tri-Ad is an experimental cognitive calibration and self-reflection helper. It is not a clinical, medical, or psychological diagnostic instrument.
+          <strong>Experimental Protocol:</strong> Tri-Ad is an experimental self-reflection tool. It is not a clinical, educational, employment, financial, medical, or psychological diagnostic instrument.
         </p>
       </div>
 

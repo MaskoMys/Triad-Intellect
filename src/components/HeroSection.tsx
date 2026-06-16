@@ -39,9 +39,18 @@ export default function HeroSection({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto font-light leading-relaxed mb-6"
+        className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto font-light leading-relaxed mb-4"
       >
         Explore your symbolic cognitive profile across three macro mental vectors and eight specialized sub-traits. Designed as an experimental tool for self-reflection and exploration.
+      </motion.p>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.25 }}
+        className="text-[10.5px] text-slate-400 max-w-2xl mx-auto mb-6 leading-relaxed font-mono"
+      >
+        Tri-Ad is an experimental self-reflection tool. It is not a clinical, educational, employment, financial, medical, or psychological diagnostic instrument.
       </motion.p>
 
       {/* Instant Dashboard Demo Banner */}

@@ -12,6 +12,8 @@ export default defineConfig(() => {
       },
     },
     server: {
+      host: '0.0.0.0',
+      port: 3000,
       // Configure Hot Module Replacement based on the standard DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',
       // Adjust file watch limits when HMR is inactive to minimize host CPU consumption.

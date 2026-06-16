@@ -1,6 +1,5 @@
 {
-  "name": "Tri-Ad Intelligence Assessment",
-  "description": "A high-fidelity psychometric platform measuring Imagination, Intuition, and Judgment with dynamic boundary normalization and interactive cognitive profile visualization.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "name": "Tri-Ad Cognitive Archetype Mapper",
+  "description": "An experimental self-reflection tool for mapping symbolic cognitive archetypes across intuition, reasoning, memory, and judgment.",
+  "requestFramePermissions": []
 }

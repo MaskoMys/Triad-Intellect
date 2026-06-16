@@ -90,7 +90,7 @@ possibleArchetypes.forEach(code => {
 // Generate Markdown contents
 let mdContent = `# Scoring, Weight & Archetype Balance Report
 
-This diagnostic assessment report was generated automatically via the Developer Diagnostics System to analyze the balance, reachability, and distribution of the Tri-Ad Cognitive Archetype Mapper.
+This balance report was generated automatically via the Developer Diagnostics System to analyze the balance, reachability, and distribution of the Tri-Ad Cognitive Archetype Mapper.
 
 ---
 

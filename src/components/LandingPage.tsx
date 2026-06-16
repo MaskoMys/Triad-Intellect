@@ -102,7 +102,7 @@ export default function LandingPage({
               <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-5 border border-slate-200">
                 <Layers className="w-7 h-7" />
               </div>
-              <h3 className="font-display text-lg font-bold text-slate-850 mb-2">No Profiles Calibrated</h3>
+              <h3 className="font-display text-lg font-bold text-slate-900 mb-2">No Profiles Calibrated</h3>
               <p className="text-xs text-slate-500 leading-relaxed mb-6">
                 You do not have any assessment history saved. Once you complete your first mapping run, your symbolic cognitive profile, archetypes, and metrics will be persisted here across sessions.
               </p>
@@ -391,7 +391,7 @@ export default function LandingPage({
                               <span className="font-semibold text-xs text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-lg">
                                 {item.profileCode}
                               </span>
-                              <span className="text-xs font-bold font-display text-slate-850">
+                              <span className="text-xs font-bold font-display text-slate-900">
                                 {item.userName}
                               </span>
                             </div>

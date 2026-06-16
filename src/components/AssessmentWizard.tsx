@@ -255,6 +255,11 @@ export default function AssessmentWizard({ userName, onComplete, onCancel }: Ass
         </div>
       </div>
 
+      {/* Disclaimer Section */}
+      <div className="mb-6 text-[10.5px] text-slate-500 bg-slate-50 border border-slate-200/40 rounded-2xl p-4 text-center leading-relaxed font-mono">
+        Tri-Ad is an experimental self-reflection tool. It is not a clinical, educational, employment, financial, medical, or psychological diagnostic instrument.
+      </div>
+
       {/* Progress Matrix Dots (Question quick navigator) */}
       <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs">
         <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4 font-mono">Question Navigation Matrix</h4>

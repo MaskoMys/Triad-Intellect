@@ -2,6 +2,8 @@
 
 Tri-Ad is an experimental cognitive mapping application designed to highlight subjective mental tendencies across **three core macro-dimensions** and **eight micro-traits**. Featuring a dynamic normalization engine, local state persistence, interactive SVG trajectory charts, and high-performance native PDF generation, Tri-Ad offers users a polished and secure portal for personal exploration and contemplation.
 
+> **Disclaimer:** Tri-Ad is an experimental self-reflection tool. It is not a clinical, educational, employment, financial, medical, or psychological diagnostic instrument.
+
 ---
 
 ## 🌌 Core Methodology
@@ -83,7 +85,7 @@ Ensure your current sandbox is fully verified before committing or opening a pul
 
 ```bash
 # 1. Install fresh packages with integrity
-npm install
+npm ci
 
 # 2. Compile and check TypeScript types
 npm run typecheck
@@ -103,19 +105,35 @@ npm audit --omit=dev
 
 ---
 
-## 🔮 Private Beta Deployment (Cloudflare Pages)
+## Private Beta Deployment
 
-Tri-Ad is fully configured for a secure, serverless private beta deployment hosting 20–30 active cohort members using **Cloudflare Pages**:
+This project is designed for Cloudflare Pages.
 
-*   **Zero-Server Decoupled Architecture**: Uses modern static asset hosting coupled with serverless Pages Functions (`/functions/api/premium-order.ts`) to handle form requisitions at edge latency. No complex VM configurations or Node servers are required in production.
-*   **WAF & CAPTCHA Safeguards**: Includes optional backend verification with **Cloudflare Turnstile** and an invitation-only validation gate (`BETA_INVITE_CODE`) to prevent bot spam or uninvited order spikes.
-*   **Privacy-First Offline Design**: Preserves assessor confidentiality by caching results locally in on-device storage, scrubbing email fields before writes, and ignoring raw client-supplied templates to resist payload tampering.
+Build command:
 
-For step-by-step guidance on setting up environment secrets, managing Cloudflare Pages project connections, and reviewing testing methodologies, refer to:
-- 📖 [BETA_READINESS.md](./docs/BETA_READINESS.md) for launch checks, calibration states, and rollback schemes.
-- 📖 [CLOUDFLARE_DEPLOYMENT.md](./docs/CLOUDFLARE_DEPLOYMENT.md) for build, static fallback, and WAF rate-limiting policies.
-- 📖 [SECURITY.md](./docs/SECURITY.md) for custom edge security headers (CSP, referrer options) and sanitization parameters.
+npm run build
+
+Output directory:
+
+dist
+
+Required Cloudflare environment variables:
+
+RESEND_API_KEY
+RECEIVER_EMAIL
+FROM_EMAIL
+BETA_INVITE_CODE
+
+Optional Turnstile variables:
+
+TURNSTILE_SECRET_KEY
+VITE_TURNSTILE_SITE_KEY
+
+Before deploying:
+
+npm ci
+npm run check
 
 ---
 
-Developed as an experimental, client-side self-reflection utility.
+Tri-Ad is an experimental self-reflection tool. It is not a clinical, educational, employment, financial, medical, or psychological diagnostic instrument.
